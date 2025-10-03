@@ -16,7 +16,7 @@ export const registerUser = catchAsync(async (req, res) => {
   const verificationToken = user.generateVerificationToken();
   await user.save({ validateBeforeSave: false });
 
-  const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}&email=${user.email}`;
+  const verificationUrl = `http://localhost:5173/verify-email?token=${verificationToken}&email=${user.email}`;
 
 
   await sendEmail({
