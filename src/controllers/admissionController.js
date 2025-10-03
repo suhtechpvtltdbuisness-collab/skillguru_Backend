@@ -19,7 +19,7 @@ const admissionTemplate = (userEmail, firstName) => `
 
 export const submitAdmission = catchAsync(async (req, res) => {
   const { email, first_name, contact_no, last_name } = req.body;
-
+console.log(req.body , "req.body")
   // Check if email already exists
   const existing = await Admmission.findOne({ email });
   if (existing) {

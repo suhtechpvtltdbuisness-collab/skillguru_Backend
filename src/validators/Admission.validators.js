@@ -32,4 +32,10 @@ export const admissionValidator = Joi.object({
       "string.email": "Email must be a valid email",
       "any.required": "Email is required",
     }),
+
+  messages: Joi.string()
+    .required()
+    .messages({
+      "string.empty": "Message is required",
+    }),
 });
