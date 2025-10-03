@@ -14,14 +14,19 @@ connectDB();
 
 const app = express();
 
+
+
 app.use(helmet());
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 
+
+
+
 app.get("/", (req, res) => res.send("SkillGuru API"));
 
-app.use("/api", routes);
+app.use("/api/v1", routes);
 
 app.use(errorMiddleware);
 
