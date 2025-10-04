@@ -1,5 +1,6 @@
 import express from "express";
-import { loginUser, registerUser, verifyEmail } from "../controllers/authController.js";
+import { addEmployee, getAllEmployees, loginUser, registerUser, verifyEmail } from "../controllers/authController.js";
+import { authorizeRoles, protect } from "../middlewares/authMiddleware.js";
 import { validate } from "../middlewares/validateMiddleware.js";
 import { userValidators } from "../validators/index.js";
 
@@ -12,5 +13,9 @@ router.post("/register", validate(userValidators.registerValidator), registerUse
 router.post("/login", validate(userValidators.loginValidator), loginUser);
 
 router.get("/verify-email", verifyEmail);
+
+router.get("/users", protect, authorizeRoles("admin"), getAllEmployees);
+
+router.post("/users/add", protect, authorizeRoles("admin"), addEmployee);
 
 export default router;

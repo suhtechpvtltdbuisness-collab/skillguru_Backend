@@ -47,3 +47,57 @@ console.log(req.body , "req.body")
     message: "Admission form submitted successfully",
   });
 });
+
+
+
+export const getAdmissions = catchAsync(async (req, res) => {
+  const admissions = await Admmission.find().sort({ createdAt: -1 });
+
+  res.status(200).json({
+    success: true,
+    count: admissions.length,
+    data: admissions, // this includes isProcessed, reachCount, references, etc.
+  });
+});
+
+
+export const getAdmissionById = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const admission = await Admmission.findById(id);
+
+  if (!admission) {
+    return res.status(404).json({ success: false, message: "Admission not found" });
+  }
+
+  res.status(200).json({
+    success: true,
+    data: admission,
+  });
+});
+export const markAdmissionProcessed = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { note } = req.body;
+  const userId = req.user?.id || "system";
+
+  const admission = await Admmission.findById(id);
+  if (!admission) {
+    return res.status(404).json({ success: false, message: "Admission not found" });
+  }
+
+  // Initialize references array if undefined
+  admission.references = admission.references || [];
+
+  // Push new reference
+  admission.references.push({ note, addedBy: userId });
+  admission.reachCount = (admission.reachCount || 0) + 1;
+  admission.isProcessed = true;
+
+  await admission.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Reference added successfully",
+    data: admission,
+  });
+});
