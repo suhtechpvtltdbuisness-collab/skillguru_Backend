@@ -4,9 +4,10 @@ import {
   createCourse,
   deleteCourse,
   getCourse,
+  getCourseByIdWithContent,
+  getPopularCoursesLimited,
   listCourses,
-  popularCourses,
-  updateCourse,
+  updateCourse
 } from "../controllers/courseController.js";
 
 import { authorizeRoles, protect } from "../middlewares/authMiddleware.js";
@@ -17,8 +18,11 @@ const router = express.Router();
 
 // ---- Public Routes ----
 router.get("/", listCourses);
-router.get("/popular", popularCourses);
+router.get("/popular", getPopularCoursesLimited);
 router.get("/:id", getCourse);
+router.get("/:id/details", getCourseByIdWithContent);
+
+
 
 // ---- Protected Routes ----
 router.post(
