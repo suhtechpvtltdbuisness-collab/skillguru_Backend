@@ -32,10 +32,26 @@ export const createCourseContentValidator = Joi.object({
   weeks: Joi.array().items(weekSchema),
   totalDurationHours: Joi.number().min(0).default(0),
   totalClasses: Joi.number().min(0).default(0),
+  liveClassLink: Joi.string().uri().allow(""),
+  recordings: Joi.array().items(
+    Joi.object({
+      title: Joi.string().min(1).required(),
+      url: Joi.string().uri().required(),
+      addedAt: Joi.date(),
+    })
+  ),
 });
 
 export const updateCourseContentValidator = Joi.object({
   weeks: Joi.array().items(weekSchema),
   totalDurationHours: Joi.number().min(0),
   totalClasses: Joi.number().min(0),
+  liveClassLink: Joi.string().uri().allow(""),
+  recordings: Joi.array().items(
+    Joi.object({
+      title: Joi.string().min(1).required(),
+      url: Joi.string().uri().required(),
+      addedAt: Joi.date(),
+    })
+  ),
 });

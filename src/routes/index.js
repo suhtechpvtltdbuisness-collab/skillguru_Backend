@@ -5,6 +5,9 @@ import contactRoutes from "./contactRoutes.js";
 import CoursecontentRoutes from "./course.ContentRoutes.js";
 import courseRoutes from "./courseRoutes.js";
 import enrollmentRoutes from "./enrollmentRoutes.js";
+import cartRoutes from "./cartRoutes.js";
+import orderRoutes from "./orderRoutes.js";
+import dashboardRoutes from "./dashboardRoutes.js";
 import NewsllatterRoutes from "./newslatterRoutes.js";
 
 const router = express.Router();
@@ -13,6 +16,9 @@ router.use("/auth", authRoutes);
 router.use("/contact", contactRoutes);
 router.use("/courses", courseRoutes);
 router.use("/enrollments", enrollmentRoutes);
+router.use("/cart", cartRoutes);
+router.use("/orders", orderRoutes);
+router.use("/dashboard", dashboardRoutes);
 router.use("/newsletter" ,NewsllatterRoutes)
 router.use("/admisssion" ,AdmmissionRoutes )
 router.use("/course-content" , CoursecontentRoutes )

@@ -35,6 +35,16 @@ const courseContentSchema = new mongoose.Schema({
   weeks: [weekSchema],
   totalDurationHours: { type: Number, default: 0 },
   totalClasses: { type: Number, default: 0 },
+  // Live class link for the current/next class
+  liveClassLink: { type: String },
+  // Playlist of recording links
+  recordings: [
+    {
+      title: { type: String, required: true },
+      url: { type: String, required: true },
+      addedAt: { type: Date, default: Date.now },
+    }
+  ],
 }, { timestamps: true });
 
 const CourseContent = mongoose.model("CourseContent", courseContentSchema);

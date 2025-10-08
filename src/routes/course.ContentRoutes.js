@@ -1,16 +1,16 @@
 import express from "express";
 import {
-  createCourseContent,
-  deleteCourseContent,
-  getCourseContent,
-  updateCourseContent,
+    createCourseContent,
+    deleteCourseContent,
+    getCourseContent,
+    updateCourseContent,
 } from "../controllers/courseContentController.js";
 
 import { authorizeRoles, protect } from "../middlewares/authMiddleware.js";
 import { validate } from "../middlewares/validateMiddleware.js";
 import {
-  createCourseContentValidator,
-  updateCourseContentValidator,
+    createCourseContentValidator,
+    updateCourseContentValidator,
 } from "../validators/courseContentValidator.js";
 
 const router = express.Router({ mergeParams: true });
@@ -24,10 +24,10 @@ router.post(
   createCourseContent
 );
 
-router.get("/", getCourseContent);
+router.get("/:courseId", getCourseContent);
 
 router.put(
-  "/",
+  "/:courseId",
   protect,
   authorizeRoles("teacher", "admin"),
   validate(updateCourseContentValidator),
@@ -35,7 +35,7 @@ router.put(
 );
 
 router.delete(
-  "/",
+  "/:courseId",
   protect,
   authorizeRoles("admin"),
   deleteCourseContent
