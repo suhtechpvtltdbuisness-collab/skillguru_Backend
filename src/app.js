@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -17,9 +18,22 @@ const app = express();
 
 
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: (origin, callback) => {
+    const allowed = [
+      process.env.FRONTEND_URL,
+      "https://suhtech.in",
+      "https://suhtech.in/",
+      "http://localhost:5173"
+    ].filter(Boolean);
+    if (!origin || allowed.includes(origin)) return callback(null, true);
+    return callback(null, false);
+  },
+  credentials: true,
+}));
 app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
+app.use(cookieParser());
 
 
 

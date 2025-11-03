@@ -4,6 +4,8 @@ import { SkillGuruUser } from "../models/index.js";
 import catchAsync from "../utils/catchAsync.js";
 import sendEmail from "../utils/sendEmail.js";
 const signToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+const signAccessToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.ACCESS_TOKEN_TTL || "15m" });
+const signRefreshToken = (id) => jwt.sign({ id }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { expiresIn: process.env.REFRESH_TOKEN_TTL || "7d" });
 
 
 export const registerUser = catchAsync(async (req, res) => {
@@ -249,9 +251,20 @@ export const loginUser = catchAsync(async (req, res) => {
 
   console.log(`✓ User logged in: ${user.email}`);
 
+  const accessToken = signAccessToken(user._id);
+  const refreshToken = signRefreshToken(user._id);
+
+  // Set refresh token as httpOnly cookie for silent refresh
+  res.cookie("rt", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
   res.json({
     success: true,
-    token: signToken(user._id),
+    token: accessToken,
     user: {
       id: user._id,
       name: user.name,
@@ -282,13 +295,9 @@ export const getCurrentUser = catchAsync(async (req, res) => {
 // LOGOUT USER (Optional - mainly for client-side)
 // ==========================================
 export const logoutUser = catchAsync(async (req, res) => {
-
+  res.clearCookie("rt", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" });
   console.log(`✓ User logged out: ${req.user?.id}`);
-
-  res.json({
-    success: true,
-    message: "Logged out successfully"
-  });
+  res.json({ success: true, message: "Logged out successfully" });
 });
 
 export const getAllEmployees = catchAsync(async (req, res) => {
@@ -350,4 +359,47 @@ export const addEmployee = catchAsync(async (req, res) => {
     employeeId: employee._id
   });
 });
+
+// ======================
+// REFRESH ACCESS TOKEN
+// ======================
+export const refreshAccessToken = catchAsync(async (req, res) => {
+  const tokenFromCookie = req.cookies?.rt;
+  const tokenFromBody = req.body?.refreshToken;
+  const token = tokenFromCookie || tokenFromBody;
+  if (!token) {
+    return res.status(401).json({ message: "Refresh token missing" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+    const accessToken = signAccessToken(decoded.id);
+    return res.json({ success: true, token: accessToken });
+  } catch (e) {
+    return res.status(401).json({ message: "Invalid refresh token" });
+  }
+});
+
+// ======================
+// AUTH STATUS (boolean)
+// ======================
+export const authStatus = async (req, res) => {
+  try {
+    const header = req.headers.authorization || "";
+    const parts = header.split(" ");
+    if (parts[0] !== "Bearer" || !parts[1]) {
+      // try refresh for silent auth
+      const tokenFromCookie = req.cookies?.rt;
+      if (!tokenFromCookie) return res.json({ authenticated: false });
+      const decoded = jwt.verify(tokenFromCookie, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+      const accessToken = signAccessToken(decoded.id);
+      return res.json({ authenticated: true, token: accessToken });
+    }
+
+    const decoded = jwt.verify(parts[1], process.env.JWT_SECRET);
+    return res.json({ authenticated: true });
+  } catch (e) {
+    return res.json({ authenticated: false });
+  }
+};
 

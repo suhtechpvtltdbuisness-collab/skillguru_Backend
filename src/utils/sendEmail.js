@@ -2,16 +2,13 @@ import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 dotenv.config();
 
-
-
-
 const transporter = nodemailer.createTransport({
-  host: "smtp.hostinger.com",
-  port: 465,
-  secure: true, // true for 465
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT) || 465,
+  secure: (Number(process.env.EMAIL_PORT) || 465) === 465, // true for 465
   auth: {
-    user: "no-reply@suhtech.in",
-    pass: "we5#Oy^6:Z5v",
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
