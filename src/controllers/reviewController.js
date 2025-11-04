@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Enrollment, Review } from "../models/index.js";
 import catchAsync from "../utils/catchAsync.js";
 
@@ -25,7 +26,7 @@ export const getCourseReviews = catchAsync(async (req, res) => {
     .sort({ createdAt: -1 });
 
   const agg = await Review.aggregate([
-    { $match: { course: new Review.mongo.ObjectId(courseId) } },
+    { $match: { course: new mongoose.Types.ObjectId(courseId) } },
     { $group: { _id: "$course", avg: { $avg: "$rating" }, count: { $sum: 1 },
       contentQuality: { $avg: "$aspects.contentQuality" },
       instructorClarity: { $avg: "$aspects.instructorClarity" },

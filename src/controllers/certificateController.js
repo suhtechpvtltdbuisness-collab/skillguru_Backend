@@ -3,7 +3,9 @@ import catchAsync from "../utils/catchAsync.js";
 
 export const issueCertificate = catchAsync(async (req, res) => {
   const { courseId } = req.params;
-  const enrollment = await Enrollment.findOne({ student: req.user._id, course: courseId }).populate("course");
+  const enrollment = await Enrollment.findOne({ student: req.user._id, course: courseId })
+    .populate("course");
+
   if (!enrollment) return res.status(404).json({ message: "Not enrolled" });
 
   let cert = await Certificate.findOne({ user: req.user._id, course: courseId });
@@ -11,14 +13,44 @@ export const issueCertificate = catchAsync(async (req, res) => {
     cert = await Certificate.create({ user: req.user._id, course: courseId });
   }
 
-  res.json({ success: true, data: cert });
+  const populated = await Certificate.findById(cert._id)
+    .populate({ path: "user", select: "name email" })
+    .populate({ path: "course", select: "title durationHours instructor" });
+
+  res.json({ success: true, data: populated });
 });
 
 export const verifyCertificate = catchAsync(async (req, res) => {
   const { id } = req.params; // certificateId
-  const cert = await Certificate.findOne({ certificateId: id }).populate({ path: "user", select: "name" }).populate({ path: "course", select: "title" });
+  const cert = await Certificate.findOne({ certificateId: id })
+    .populate({ path: "user", select: "name email" })
+    .populate({ path: "course", select: "title durationHours instructor" });
+
   if (!cert) return res.status(404).json({ valid: false });
   res.json({ success: true, valid: true, data: cert });
+});
+
+export const getMyCertificates = catchAsync(async (req, res) => {
+  const certificates = await Certificate.find({ user: req.user._id })
+    .populate({ path: "course", select: "title thumbnailUrl instructor durationHours" })
+    .sort({ issuedAt: -1 });
+
+  res.json({ success: true, data: certificates });
+});
+
+export const downloadCertificate = catchAsync(async (req, res) => {
+  const { id } = req.params; // certificate _id
+  const cert = await Certificate.findOne({ _id: id, user: req.user._id })
+    .populate({ path: "user", select: "name email" })
+    .populate({ path: "course", select: "title durationHours instructor" });
+
+  if (!cert) return res.status(404).json({ message: "Certificate not found" });
+
+  // Return certificate data for PDF generation on frontend
+  res.json({
+    success: true,
+    data: cert
+  });
 });
 
 

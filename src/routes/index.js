@@ -1,5 +1,6 @@
 import express from "express";
 import AdmmissionRoutes from "./AdmissionRoutes.js";
+import assignmentRoutes from "./assignmentRoutes.js";
 import authRoutes from "./authRoutes.js";
 import cartRoutes from "./cartRoutes.js";
 import certificateRoutes from "./certificateRoutes.js";
@@ -29,8 +30,9 @@ router.use("/reviews", reviewRoutes);
 router.use("/certificates", certificateRoutes);
 router.use("/progress", progressRoutes);
 router.use("/coupons", couponRoutes);
+router.use("/assignments", assignmentRoutes);
 router.use("/newsletter" ,NewsllatterRoutes)
-router.use("/admisssion" ,AdmmissionRoutes )
+router.use("/admission" ,AdmmissionRoutes )
 router.use("/course-content" , CoursecontentRoutes )
 
 export default router;

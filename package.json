@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "seed:demo": "node src/seed/demoUserSeed.js"
   },
   "keywords": [],
   "author": "",
