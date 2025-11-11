@@ -18,16 +18,25 @@ const app = express();
 
 
 app.use(helmet());
-origin: (origin, callback) => {
-  const allowed = [
-    process.env.FRONTEND_URL,
-    "https://suhtech.in",
-    "https://www.suhtech.in",
-    "http://localhost:5173"
-  ].filter(Boolean);
-  if (!origin || allowed.includes(origin)) return callback(null, true);
-  return callback(new Error("Not allowed by CORS"));
-}
+app.use(cors({
+  origin: (origin, callback) => {
+    const allowed = [
+      process.env.FRONTEND_URL,
+      "https://suhtech.in",
+      "https://www.suhtech.in",
+      "http://localhost:5173"
+    ].filter(Boolean);
+
+    if (!origin || allowed.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.log(`CORS blocked request from: ${origin}`); // <-- log it
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+}));
+
 
 app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
