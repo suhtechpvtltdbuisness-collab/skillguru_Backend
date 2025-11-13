@@ -1,4 +1,4 @@
-import { Coursecontent } from "../models/index.js";
+  import { Coursecontent } from "../models/index.js";
 import catchAsync from "../utils/catchAsync.js";
 
 
