@@ -4,12 +4,19 @@ import mongoose from "mongoose";
 
 const skillGuruUserSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
+  firstName: { type: String, trim: true },
+  lastName: { type: String, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true },
   role: { type: String, enum: ["student", "teacher", "sales", "admin"], default: "student" },
-  phone: { type: String },
-  bio: { type: String },
-  avatarUrl: { type: String },
+  phone: { type: String, trim: true },
+  bio: { type: String, trim: true },
+  avatarUrl: { type: String, trim: true },
+  address: { type: String, trim: true },
+  dob: { type: Date },
+  location: { type: String, trim: true },
+  postalCode: { type: String, trim: true },
+  gender: { type: String, enum: ["Male", "Female", "Other", "Prefer not to say"] },
   isVerified: { type: Boolean, default: false },
   verificationToken: { type: String },
   verificationTokenExpiry: { type: Date },
@@ -18,7 +25,7 @@ const skillGuruUserSchema = new mongoose.Schema({
   metadata: { type: Object, default: {} }
 }, { timestamps: true });
 
-// Index for faster queries
+
 skillGuruUserSchema.index({ email: 1, verificationToken: 1 });
 
 // Pre-save hook - ONLY hash password if modified and not already hashed

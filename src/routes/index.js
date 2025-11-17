@@ -14,6 +14,7 @@ import NewsllatterRoutes from "./newslatterRoutes.js";
 import orderRoutes from "./orderRoutes.js";
 import progressRoutes from "./progressRoutes.js";
 import reviewRoutes from "./reviewRoutes.js";
+import userRoutes from "./userRoutes.js";
 import wishlistRoutes from "./wishlistRoutes.js";
 
 const router = express.Router();
@@ -34,5 +35,6 @@ router.use("/assignments", assignmentRoutes);
 router.use("/newsletter" ,NewsllatterRoutes)
 router.use("/admission" ,AdmmissionRoutes )
 router.use("/course-content" , CoursecontentRoutes )
+router.use("/user", userRoutes);
 
 export default router;
