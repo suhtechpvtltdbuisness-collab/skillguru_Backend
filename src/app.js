@@ -24,7 +24,8 @@ app.use(cors({
       process.env.FRONTEND_URL,
       "https://suhtech.in",
       "https://www.suhtech.in",
-      "http://localhost:8080"
+      "http://localhost:8080",
+      "https://skillguru-admin-suite.vercel.app"
     ].filter(Boolean);
 
     if (!origin || allowed.includes(origin)) {
