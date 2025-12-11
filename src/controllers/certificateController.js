@@ -53,4 +53,51 @@ export const downloadCertificate = catchAsync(async (req, res) => {
   });
 });
 
+// Admin endpoints
+export const getAllCertificates = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, courseId, search } = req.query;
+  const query = {};
+
+  if (courseId) {
+    query.course = courseId;
+  }
+
+  if (search) {
+    // Search by student name, email, or certificate ID
+    const { SkillGuruUser } = await import("../models/index.js");
+    const matchingUsers = await SkillGuruUser.find({
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } }
+      ]
+    }).select("_id");
+
+    query.$or = [
+      { certificateId: { $regex: search, $options: "i" } },
+      { user: { $in: matchingUsers.map(u => u._id) } }
+    ];
+  }
+
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const certificates = await Certificate.find(query)
+    .populate("user", "name email")
+    .populate("course", "title instructor durationHours")
+    .sort({ issuedAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
+
+  const total = await Certificate.countDocuments(query);
+
+  res.json({
+    success: true,
+    data: certificates,
+    pagination: {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / parseInt(limit)),
+    },
+  });
+});
+
 

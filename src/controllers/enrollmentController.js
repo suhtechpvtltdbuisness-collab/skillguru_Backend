@@ -70,3 +70,77 @@ export const getEnrollmentStats = async (req, res) => {
     });
   }
 };
+
+// Admin endpoints
+export const getAllEnrollments = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, status, courseId, search } = req.query;
+  const query = {};
+
+  if (status) {
+    query.status = status;
+  }
+
+  if (courseId) {
+    query.course = courseId;
+  }
+
+  if (search) {
+    // Search by student name or email
+    const { SkillGuruUser } = await import("../models/index.js");
+    const matchingUsers = await SkillGuruUser.find({
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } }
+      ]
+    }).select("_id");
+
+    query.student = { $in: matchingUsers.map(u => u._id) };
+  }
+
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const enrollments = await Enrollment.find(query)
+    .populate("student", "name email phone")
+    .populate("course", "title thumbnailUrl instructor durationHours")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
+
+  const total = await Enrollment.countDocuments(query);
+
+  res.json({
+    success: true,
+    data: enrollments,
+    pagination: {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / parseInt(limit)),
+    },
+  });
+});
+
+export const getEnrollmentById = catchAsync(async (req, res) => {
+  const enrollment = await Enrollment.findById(req.params.id)
+    .populate("student", "name email phone")
+    .populate("course", "title price thumbnailUrl instructor durationHours");
+
+  if (!enrollment) return res.status(404).json({ message: "Enrollment not found" });
+
+  res.json({ success: true, data: enrollment });
+});
+
+export const updateEnrollmentStatus = catchAsync(async (req, res) => {
+  const { status } = req.body;
+
+  if (!["enrolled", "completed", "cancelled"].includes(status)) {
+    return res.status(400).json({ message: "Invalid status" });
+  }
+
+  const enrollment = await Enrollment.findById(req.params.id);
+  if (!enrollment) return res.status(404).json({ message: "Enrollment not found" });
+
+  enrollment.status = status;
+  await enrollment.save();
+
+  res.json({ success: true, data: enrollment });
+});

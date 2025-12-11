@@ -99,4 +99,51 @@ export const updateProfile = catchAsync(async (req, res) => {
   res.json(serializeUser(user));
 });
 
+// Admin endpoints
+export const getAllStudents = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, search, verified } = req.query;
+  const query = { role: { $ne: "admin" } }; // Exclude admins
+
+  if (search) {
+    query.$or = [
+      { name: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+      { phone: { $regex: search, $options: "i" } }
+    ];
+  }
+
+  if (verified !== undefined) {
+    query.verified = verified === "true";
+  }
+
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const students = await SkillGuruUser.find(query)
+    .select("-password -verificationToken -verificationTokenExpiry -passwordResetToken -passwordResetExpiry")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
+
+  const total = await SkillGuruUser.countDocuments(query);
+
+  res.json({
+    success: true,
+    data: students,
+    pagination: {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / parseInt(limit)),
+    },
+  });
+});
+
+export const getStudentById = catchAsync(async (req, res) => {
+  const student = await SkillGuruUser.findById(req.params.id)
+    .select("-password -verificationToken -verificationTokenExpiry -passwordResetToken -passwordResetExpiry");
+
+  if (!student) return res.status(404).json({ message: "Student not found" });
+
+  res.json({ success: true, data: student });
+});
+
 

@@ -138,4 +138,74 @@ export const cashfreeWebhook = catchAsync(async (req, res) => {
   res.json({ success: true });
 });
 
+// Admin endpoints
+export const getAllOrders = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, status, search } = req.query;
+  const query = {};
+
+  if (status) {
+    query.status = status;
+  }
+
+  if (search) {
+    // Search by order ID or user email
+    const users = await import("../models/index.js").then(m => m.SkillGuruUser);
+    const matchingUsers = await users.find({
+      email: { $regex: search, $options: "i" }
+    }).select("_id");
+
+    query.$or = [
+      { _id: search.match(/^[0-9a-fA-F]{24}$/) ? search : null },
+      { user: { $in: matchingUsers.map(u => u._id) } }
+    ].filter(q => q._id !== null || q.user);
+  }
+
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const orders = await Order.find(query)
+    .populate("user", "name email phone")
+    .populate("items.course", "title thumbnailUrl")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
+
+  const total = await Order.countDocuments(query);
+
+  res.json({
+    success: true,
+    data: orders,
+    pagination: {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / parseInt(limit)),
+    },
+  });
+});
+
+export const getOrderById = catchAsync(async (req, res) => {
+  const order = await Order.findById(req.params.id)
+    .populate("user", "name email phone")
+    .populate("items.course", "title price thumbnailUrl instructor");
+
+  if (!order) return res.status(404).json({ message: "Order not found" });
+
+  res.json({ success: true, data: order });
+});
+
+export const updateOrderStatus = catchAsync(async (req, res) => {
+  const { status } = req.body;
+
+  if (!["created", "pending", "paid", "failed", "refunded"].includes(status)) {
+    return res.status(400).json({ message: "Invalid status" });
+  }
+
+  const order = await Order.findById(req.params.id);
+  if (!order) return res.status(404).json({ message: "Order not found" });
+
+  order.status = status;
+  await order.save();
+
+  res.json({ success: true, data: order });
+});
+
 

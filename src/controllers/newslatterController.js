@@ -40,3 +40,36 @@ export const submitNewsletter = catchAsync(async (req, res) => {
 
   res.status(201).json({ success: true, data: contact, message: "Subscribed successfully" });
 });
+
+// Admin endpoints
+export const getAllSubscribers = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, search, subscribed } = req.query;
+  const query = {};
+
+  if (search) {
+    query.email = { $regex: search, $options: "i" };
+  }
+
+  if (subscribed !== undefined) {
+    query.subscribed = subscribed === "true";
+  }
+
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const subscribers = await Newsletter.find(query)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
+
+  const total = await Newsletter.countDocuments(query);
+
+  res.json({
+    success: true,
+    data: subscribers,
+    pagination: {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / parseInt(limit)),
+    },
+  });
+});

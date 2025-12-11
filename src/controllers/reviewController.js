@@ -27,11 +27,14 @@ export const getCourseReviews = catchAsync(async (req, res) => {
 
   const agg = await Review.aggregate([
     { $match: { course: new mongoose.Types.ObjectId(courseId) } },
-    { $group: { _id: "$course", avg: { $avg: "$rating" }, count: { $sum: 1 },
-      contentQuality: { $avg: "$aspects.contentQuality" },
-      instructorClarity: { $avg: "$aspects.instructorClarity" },
-      valueForMoney: { $avg: "$aspects.valueForMoney" },
-    } }
+    {
+      $group: {
+        _id: "$course", avg: { $avg: "$rating" }, count: { $sum: 1 },
+        contentQuality: { $avg: "$aspects.contentQuality" },
+        instructorClarity: { $avg: "$aspects.instructorClarity" },
+        valueForMoney: { $avg: "$aspects.valueForMoney" },
+      }
+    }
   ]);
 
   const summary = {
@@ -44,6 +47,49 @@ export const getCourseReviews = catchAsync(async (req, res) => {
     }
   };
   res.json({ success: true, data: { reviews, summary } });
+});
+
+// Admin endpoints
+export const getAllReviews = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, courseId, minRating, maxRating } = req.query;
+  const query = {};
+
+  if (courseId) {
+    query.course = courseId;
+  }
+
+  if (minRating || maxRating) {
+    query.rating = {};
+    if (minRating) query.rating.$gte = parseInt(minRating);
+    if (maxRating) query.rating.$lte = parseInt(maxRating);
+  }
+
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+  const reviews = await Review.find(query)
+    .populate("user", "name email")
+    .populate("course", "title thumbnailUrl")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
+
+  const total = await Review.countDocuments(query);
+
+  res.json({
+    success: true,
+    data: reviews,
+    pagination: {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / parseInt(limit)),
+    },
+  });
+});
+
+export const deleteReview = catchAsync(async (req, res) => {
+  const review = await Review.findByIdAndDelete(req.params.id);
+  if (!review) return res.status(404).json({ message: "Review not found" });
+  res.json({ success: true, message: "Review deleted successfully" });
 });
 
 
