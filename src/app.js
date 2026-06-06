@@ -11,11 +11,8 @@ import errorMiddleware from "./middlewares/errorMiddleware.js";
 import routes from "./routes/index.js";
 
 dotenv.config();
-connectDB();
 
 const app = express();
-
-
 
 app.use(helmet());
 app.use(cors({
@@ -32,20 +29,25 @@ app.use(cors({
     if (!origin || allowed.includes(origin)) {
       return callback(null, true);
     } else {
-      console.log(`CORS blocked request from: ${origin}`); // <-- log it
+      console.log(`CORS blocked request from: ${origin}`);
       return callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
 }));
 
-
 app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 
-
-
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 app.get("/", (req, res) => res.send("SkillGuru API"));
 
@@ -54,4 +56,9 @@ app.use("/api/v1", routes);
 app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+}
+
+export default app;
