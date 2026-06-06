@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 module.exports = {
   apps: [
     {
@@ -6,22 +8,20 @@ module.exports = {
       instances: "max",
       exec_mode: "cluster",
       env: {
-        NODE_ENV: "production",
-        MONGO_URI: "mongodb+srv://Ankit:Ankit@cluster0.m609d.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-        JWT_SECRET: "supersecretkey_change_me",
-        PORT: "5000",
-        EMAIL_HOST: "smtp.hostinger.com",
-        EMAIL_PORT: "465",
-        EMAIL_USER: "no-reply@suhtech.in",
-        EMAIL_PASS: "Ankit%45@123",
-        FRONTEND_URL: "http://suhtech.in/",
-        BACKEND_URL: "http://localhost:5000",
-
-        // Cashfree Payment Gateway
-        CASHFREE_APP_ID: "your_cashfree_app_id",
-        CASHFREE_SECRET_KEY: "your_cashfree_secret_key",
-        CASHFREE_BASE_URL: "https://sandbox.cashfree.com/pg"
-      }
-    }
-  ]
+        NODE_ENV: process.env.NODE_ENV || "production",
+        MONGO_URI: process.env.MONGO_URI,
+        JWT_SECRET: process.env.JWT_SECRET,
+        PORT: process.env.PORT || "5000",
+        EMAIL_HOST: process.env.EMAIL_HOST,
+        EMAIL_PORT: process.env.EMAIL_PORT,
+        EMAIL_USER: process.env.EMAIL_USER,
+        EMAIL_PASS: process.env.EMAIL_PASS,
+        FRONTEND_URL: process.env.FRONTEND_URL,
+        BACKEND_URL: process.env.BACKEND_URL,
+        CASHFREE_APP_ID: process.env.CASHFREE_APP_ID,
+        CASHFREE_SECRET_KEY: process.env.CASHFREE_SECRET_KEY,
+        CASHFREE_BASE_URL: process.env.CASHFREE_BASE_URL,
+      },
+    },
+  ],
 };
