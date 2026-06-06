@@ -15,23 +15,30 @@ dotenv.config();
 const app = express();
 
 app.use(helmet());
+const normalizeOrigin = (origin) => origin?.replace(/\/$/, "");
+
 app.use(cors({
   origin: (origin, callback) => {
     const allowed = [
       process.env.FRONTEND_URL,
       "https://suhtech.in",
       "https://www.suhtech.in",
+      "http://suhtech.in",
+      "http://www.suhtech.in",
       "http://localhost:8080",
       "https://skillguru-admin-suite.vercel.app",
-      "https://skillguru-admin-suite-981d.vercel.app"
-    ].filter(Boolean);
+      "https://skillguru-admin-suite-981d.vercel.app",
+      "http://localhost:5173",
+    ]
+      .filter(Boolean)
+      .map(normalizeOrigin);
 
-    if (!origin || allowed.includes(origin)) {
+    if (!origin || allowed.includes(normalizeOrigin(origin))) {
       return callback(null, true);
-    } else {
-      console.log(`CORS blocked request from: ${origin}`);
-      return callback(new Error("Not allowed by CORS"));
     }
+
+    console.log(`CORS blocked request from: ${origin}`);
+    return callback(null, false);
   },
   credentials: true,
 }));
@@ -52,6 +59,7 @@ app.use(async (req, res, next) => {
 app.get("/", (req, res) => res.send("SkillGuru API"));
 
 app.use("/api/v1", routes);
+app.use("/api", routes);
 
 app.use(errorMiddleware);
 
